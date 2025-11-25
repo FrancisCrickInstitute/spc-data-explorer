@@ -67,19 +67,138 @@ Hover and click interactions reveal comprehensive compound information:
 
 ---
 
+## Input Files
+
+The app loads data from two upstream analysis pipelines. Each pipeline produces a set of files that must be present in specific locations.
+
+### Directory Structure Overview
+
+```
+SPC_ANALYSIS_DIR/
+├── data/
+│   └── spc_for_viz_app.csv          # Main visualisation data (primary)
+└── analysis/
+    └── landmark_distances/
+        ├── test_distances.parquet    # Landmark distances for test compounds
+        ├── reference_distances.parquet   # Landmark distances for reference compounds
+        └── landmark_metadata.parquet # Metadata for all landmarks
+
+CP_ANALYSIS_DIR/
+├── data/
+│   └── cp_for_viz_app.csv           # Main visualisation data (primary)
+└── landmark_analysis/
+    ├── test_distances.parquet        # Landmark distances for test compounds
+    ├── reference_distances.parquet   # Landmark distances for reference compounds
+    └── landmark_metadata.parquet     # Metadata for all landmarks
+
+THUMBNAIL_DIR/
+├── fixed/                            # Fixed intensity scaling
+│   └── {plate}/
+│       └── {plate}_{well}_{site}.png
+└── auto/                             # Auto-scaled per image
+    └── {plate}/
+        └── {plate}_{well}_{site}.png
+```
+
+### Main Visualisation Data
+
+These CSV files contain the pre-computed coordinates and metadata for plotting.
+
+| Pipeline | File | Location | Description |
+|----------|------|----------|-------------|
+| SPC | `spc_for_viz_app.csv` | `{SPC_ANALYSIS_DIR}/data/` | UMAP/t-SNE coordinates, landmark info, compound scores |
+| CellProfiler | `cp_for_viz_app.csv` | `{CP_ANALYSIS_DIR}/data/` | UMAP/t-SNE coordinates, landmark info, metadata |
+
+**SPC columns include**: `UMAP1`, `UMAP2`, `TSNE1`, `TSNE2`, `plate`, `well`, `treatment`, `PP_ID`, `PP_ID_uM`, `library`, `moa_first`, `moa_compound_uM`, `SMILES`, `mad_cosine`, `cosine_distance_from_dmso`, `closest_landmark_*`, `second_closest_landmark_*`, `third_closest_landmark_*`, `score_harmonic_mean_*`
+
+**CellProfiler columns include**: `UMAP1`, `UMAP2`, `TSNE1`, `TSNE2`, `Metadata_plate_barcode`, `Metadata_well`, `treatment`, `Metadata_PP_ID`, `Metadata_PP_ID_uM`, `Metadata_library`, `Metadata_annotated_target_first`, `Metadata_SMILES`, `closest_landmark_Metadata_*`, etc.
+
+### Landmark Distance Files (Slim Format)
+
+These parquet files power the landmark analysis modal. They use a "slim format" where each row is one compound/treatment, with distances to all landmarks stored as separate columns.
+
+| Pipeline | File | Location | Description |
+|----------|------|----------|-------------|
+| SPC | `test_distances.parquet` | `{SPC_ANALYSIS_DIR}/analysis/landmark_distances/` | Distances from test compounds to all landmarks |
+| SPC | `reference_distances.parquet` | `{SPC_ANALYSIS_DIR}/analysis/landmark_distances/` | Distances from reference compounds to all landmarks |
+| SPC | `landmark_metadata.parquet` | `{SPC_ANALYSIS_DIR}/analysis/landmark_distances/` | Metadata for each landmark (MOA, PP_ID, etc.) |
+| CellProfiler | `test_distances.parquet` | `{CP_ANALYSIS_DIR}/landmark_analysis/` | Distances from test compounds to all landmarks |
+| CellProfiler | `reference_distances.parquet` | `{CP_ANALYSIS_DIR}/landmark_analysis/` | Distances from reference compounds to all landmarks |
+| CellProfiler | `landmark_metadata.parquet` | `{CP_ANALYSIS_DIR}/landmark_analysis/` | Metadata for each landmark |
+
+**Slim format structure** (`test_distances.parquet` / `reference_distances.parquet`):
+- One row per treatment/compound
+- `treatment` column: unique identifier
+- `query_dmso_distance`: distance from DMSO control
+- `query_mad`: MAD-based dispersion metric
+- `{landmark_treatment}_distance`: distance to each landmark (one column per landmark)
+- Metadata columns: plate, well, library, PP_ID, MOA, SMILES, etc.
+
+**Landmark metadata structure** (`landmark_metadata.parquet`):
+- One row per landmark
+- `treatment`: landmark identifier (e.g., `CompoundX@1.0`)
+- `moa_first` / `Metadata_annotated_target_first`: mechanism of action
+- `PP_ID_uM` / `Metadata_PP_ID_uM`: compound identifier with concentration
+- Additional annotation columns
+
+### Thumbnail Images
+
+RGB thumbnail images (500×500 pixels) displayed on hover and click.
+
+| Scaling Mode | Location | Description |
+|--------------|----------|-------------|
+| Fixed | `{THUMBNAIL_DIR}/fixed/{plate}/{plate}_{well}_{site}.png` | Pre-defined intensity limits for cross-image comparison |
+| Auto | `{THUMBNAIL_DIR}/auto/{plate}/{plate}_{well}_{site}.png` | Per-image 1st-99th percentile scaling |
+
+Multiple thumbnail directories can be specified in the config (e.g., one per imaging project).
+
+### Fallback Loading Logic
+
+The data loader (`loader.py`) implements fallback logic:
+1. **Primary**: Load from CSV file (`spc_for_viz_app.csv` or `cp_for_viz_app.csv`)
+2. **Fallback**: If CSV not found, attempt to load and combine parquet files from `landmark_distances/` or `landmark_analysis/` directories
+
+---
+
 ## Data Sources
 
-This visualisation app displays data generated by two upstream analysis pipelines:
+This visualisation app displays data generated by two upstream analysis pipelines.
 
 ### SPC Analysis Pipeline
-- **Repository**: [spc-cosine-analysis](https://github.com/YOUR_USERNAME/spc-cosine-analysis) *(TBD - update link)*
-- **Description**: Spherical Phenotype Clustering using ResNet feature extraction and cosine similarity analysis
-- **Output**: Parquet files with UMAP/t-SNE coordinates, landmark distances, and unified metrics
+- **Repository**: [spc-cosine-analysis](https://github.com/FrancisCrickInstitute/spc-cosine-analysis)
+- **Generates**:
+  - `spc_for_viz_app.csv` — Main visualisation data with UMAP/t-SNE coordinates
+  - `test_distances.parquet` — Landmark distances for test compounds
+  - `reference_distances.parquet` — Landmark distances for reference compounds
+  - `landmark_metadata.parquet` — Landmark compound metadata
+- **Input**: SPC embeddings from [spc-distributed](https://github.com/FrancisCrickInstitute/spc-distributed)
 
 ### CellProfiler Analysis Pipeline  
-- **Repository**: [cellprofiler_processing](https://github.com/YOUR_USERNAME/cellprofiler_processing) *(TBD - update link)*
-- **Description**: Traditional CellProfiler morphological profiling with MAD normalisation
-- **Output**: Parquet files with Metadata_ prefixed columns and landmark analysis results
+- **Repository**: [cellprofiler_processing](https://github.com/FrancisCrickInstitute/cellprofiler_processing)
+- **Generates**:
+  - `cp_for_viz_app.csv` — Main visualisation data with UMAP/t-SNE coordinates
+  - `test_distances.parquet` — Landmark distances for test compounds
+  - `reference_distances.parquet` — Landmark distances for reference compounds
+  - `landmark_metadata.parquet` — Landmark compound metadata
+- **Input**: CellProfiler feature extraction output
+
+### Column Name Mapping
+
+The app harmonises different column naming conventions between pipelines:
+
+| SPC Column | CellProfiler Column | Description |
+|------------|---------------------|-------------|
+| `plate` | `Metadata_plate_barcode` | Plate identifier |
+| `well` | `Metadata_well` | Well position |
+| `PP_ID` | `Metadata_PP_ID` | Compound identifier |
+| `PP_ID_uM` | `Metadata_PP_ID_uM` | Compound ID with concentration |
+| `library` | `Metadata_library` | Source library |
+| `moa_first` | `Metadata_annotated_target_first` | Primary MOA/target |
+| `SMILES` | `Metadata_SMILES` | Chemical structure |
+| `compound_name` | `Metadata_chemical_name` | Compound name |
+| `compound_uM` | `Metadata_compound_uM` | Concentration |
+| `mad_cosine` | `query_mad` | MAD-based dispersion |
+| `cosine_distance_from_dmso` | `query_dmso_distance` | Distance from DMSO |
 
 ---
 
@@ -108,7 +227,7 @@ spc-data-explorer/
     │   └── search.py                # Search component builders
     │
     ├── config/
-    │   └── config_20251118_TEST_INPUTS.py  #  RECOMMENDED: Latest config
+    │   └── config_20251118_TEST_INPUTS.py  # ✅ RECOMMENDED: Latest config
     │
     ├── data/
     │   ├── __init__.py
@@ -128,13 +247,31 @@ spc-data-explorer/
             └── thumbnails_*.sh      # SLURM submission scripts for each dataset
 ```
 
+### Module Descriptions
+
+| Module | File | Description |
+|--------|------|-------------|
+| **Entry Point** | `main.py` | Initialises Dash app, loads data, registers callbacks |
+| **Config Loader** | `config_loader.py` | Singleton pattern for interactive config selection |
+| **Data Loader** | `data/loader.py` | Loads SPC and CP datasets, creates column aliases |
+| **Landmark Loader** | `data/landmark_loader.py` | Loads slim-format parquet files, builds dropdown options |
+| **Plot Callbacks** | `callbacks/plot_callbacks.py` | Generates scatter plots, handles plot type switching |
+| **Image Callbacks** | `callbacks/image_callbacks.py` | Hover/click handlers, thumbnail display, metadata panels |
+| **Search Callbacks** | `callbacks/search_callbacks.py` | Compound search with autocomplete |
+| **Landmark Callbacks** | `callbacks/landmark_callbacks.py` | Landmark analysis modal, distance scatter plots |
+| **Layout** | `components/layout.py` | Dashboard HTML structure and component arrangement |
+| **Controls** | `components/controls.py` | Dropdowns, sliders, radio buttons for UI |
+| **Colour Utils** | `utils/color_utils.py` | Colour palettes for categorical/continuous data |
+| **Image Utils** | `utils/image_utils.py` | Thumbnail path resolution, image loading, text overlay |
+| **SMILES Utils** | `utils/smiles_utils.py` | RDKit-based chemical structure rendering |
+
 ### Key Configuration Note
 
 >  **Use `config_20251118_TEST_INPUTS.py` as your starting point.** 
 
 This is the latest configuration file that includes:
 - Separate loading logic for SPC and CellProfiler datasets
-- Correct column name mappings for both pipelines (e.g., `plate` vs `Metadata_plate_barcode`)
+- Correct column name mappings for both pipelines
 - Hover column definitions for each data type
 - Plot type configurations for all four views (SPC UMAP/t-SNE, CP UMAP/t-SNE)
 
@@ -223,13 +360,13 @@ thumbnails/
 ### Prerequisites
 - Python 3.11+
 - Conda (recommended) or pip
-- Access to data files (parquet) and thumbnail images
+- Access to data files (parquet/CSV) and thumbnail images
 
 ### Setup with Conda (Recommended)
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/spc-data-explorer.git
+git clone https://github.com/FrancisCrickInstitute/spc-data-explorer.git
 cd spc-data-explorer/scripts
 
 # Create environment from file
@@ -243,7 +380,7 @@ conda activate spc_visualisation
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/spc-data-explorer.git
+git clone https://github.com/FrancisCrickInstitute/spc-data-explorer.git
 cd spc-data-explorer/scripts
 
 # Create virtual environment
@@ -277,12 +414,17 @@ Edit your configuration file to point to your data:
 
 ```python
 class Config:
-    # Data paths - update these!
-    SPC_DATA_PATH = Path("/path/to/spc_analysis_output.parquet")
-    CP_DATA_PATH = Path("/path/to/cellprofiler_output.parquet")
+    # SPC Analysis Directory (contains data/ and analysis/ subdirs)
+    SPC_ANALYSIS_DIR = Path("/path/to/spc_analysis_output")
     
-    # Thumbnail directory (should contain 'fixed/' and 'auto/' subdirectories)
-    THUMBNAIL_DIRS = Path("/path/to/thumbnails")
+    # CellProfiler Analysis Directory (contains data/ and landmark_analysis/ subdirs)
+    CP_ANALYSIS_DIR = Path("/path/to/cellprofiler_output")
+    
+    # Thumbnail directories (list of paths, each containing fixed/ and auto/ subdirs)
+    THUMBNAIL_DIRS = [
+        Path("/path/to/thumbnails/project1"),
+        Path("/path/to/thumbnails/project2"),
+    ]
 ```
 
 ### 3. Environment-Specific Paths
@@ -292,11 +434,23 @@ The template supports automatic path switching based on username:
 ```python
 if os.environ.get("USER", "") == "your_cluster_username":
     # Cluster paths (e.g., /nemo/...)
-    ANALYSIS_DIR = Path("/nemo/path/to/analysis")
+    SPC_ANALYSIS_DIR = Path("/nemo/path/to/analysis")
 else:
     # Local paths (e.g., mounted volumes)
-    ANALYSIS_DIR = Path("/Volumes/path/to/analysis")
+    SPC_ANALYSIS_DIR = Path("/Volumes/path/to/analysis")
 ```
+
+### 4. Verify Configuration
+
+The config includes a `validate_paths()` method that checks all required files exist:
+
+```python
+from config_loader import get_config
+Config = get_config()
+Config.validate_paths()
+```
+
+This will print a checklist showing which files are found/missing.
 
 ---
 
@@ -347,73 +501,10 @@ The app will start at `http://127.0.0.1:8090` (or the port specified in your con
    - Image scaling mode (fixed/auto)
    - Optional text labels on images
 
----
-
-## Input Data Format
-
-### SPC Dataset Required Columns
-
-| Column | Description |
-|--------|-------------|
-| `UMAP1`, `UMAP2` | UMAP coordinates |
-| `TSNE1`, `TSNE2` | t-SNE coordinates |
-| `plate`, `well` | Plate and well identifiers |
-| `treatment` | Treatment identifier |
-| `PP_ID`, `PP_ID_uM` | Compound ID and with concentration |
-| `library` | Source library |
-| `moa_first`, `moa_compound_uM` | Mechanism of action |
-| `closest_landmark_*` | Landmark distance data |
-
-### CellProfiler Dataset Required Columns
-
-| Column | Description |
-|--------|-------------|
-| `UMAP1`, `UMAP2` | UMAP coordinates |
-| `TSNE1`, `TSNE2` | t-SNE coordinates |
-| `Metadata_plate_barcode` | Plate identifier |
-| `Metadata_well` | Well identifier |
-| `Metadata_PP_ID`, `Metadata_PP_ID_uM` | Compound identifiers |
-| `Metadata_library` | Source library |
-| `Metadata_annotated_target_first` | MOA/target |
-| `closest_landmark_Metadata_*` | Landmark data |
-
-### Thumbnail Directory Structure
-
-```
-thumbnails/
-├── fixed/           # Fixed intensity scaling (comparable)
-│   ├── plate1/
-│   │   ├── plate1_A01_01.png
-│   │   ├── plate1_A01_02.png
-│   │   └── ...
-│   └── plate2/
-└── auto/            # Auto-scaled per image
-    ├── plate1/
-    └── plate2/
-```
-
----
-
-## Development
-
-### Adding New Colour Options
-
-Edit `utils/color_utils.py` to add new colour column configurations:
-
-```python
-color_columns = [
-    ('new_column', False, 'Display Name', px.colors.qualitative.Set1),
-    # (column_name, is_continuous, display_label, colour_palette)
-]
-```
-
-### Adding New Hover Fields
-
-Update your config file's `get_hover_columns()` and `get_hover_display()` methods to include additional fields in the hover template.
-
-### Customising the Layout
-
-The dashboard layout is defined in `components/layout.py`. Modify this file to add new panels or rearrange existing components.
+6. **Landmark Analysis Modal**:
+   - Click "Open Landmark Distance Analysis" button
+   - Select a landmark from the dropdown
+   - View scatter plot of all compounds vs selected landmark distance
 
 ---
 
@@ -423,23 +514,39 @@ The dashboard layout is defined in `components/layout.py`. Modify this file to a
 
 **"No data available" error**
 - Check that your data paths in the config file are correct
-- Verify the parquet files exist and are readable
+- Run `Config.validate_paths()` to see which files are missing
+- Verify the CSV/parquet files exist and are readable
 - Ensure required columns are present in your data
 
 **Images not displaying**
-- Verify thumbnail directory path is correct
-- Check that `fixed/` and `auto/` subdirectories exist
+- Verify thumbnail directory paths are correct
+- Check that `fixed/` and `auto/` subdirectories exist within each thumbnail directory
 - Confirm image naming convention: `{plate}_{well}_{site}.png`
+- Check the app logs for "Cannot load image" warnings
+
+**Landmark analysis not working**
+- Ensure all three parquet files exist: `test_distances.parquet`, `reference_distances.parquet`, `landmark_metadata.parquet`
+- Check they are in the correct subdirectory (`analysis/landmark_distances/` for SPC, `landmark_analysis/` for CP)
+- Verify the slim format structure with distance columns ending in `_distance`
 
 **Slow performance with large datasets**
 - Consider filtering data before loading
-- Reduce the number of hover columns
-- Use server-side pagination for very large datasets
+- Reduce the number of hover columns in config
+- The landmark loader caches options to disk after first load
 
 **RDKit import errors**
 - Install RDKit via conda: `conda install -c conda-forge rdkit`
 - If using pip, RDKit installation can be complex - conda is recommended
 
+**Column not found errors**
+- Check that your data has the expected column names
+- For CellProfiler data, columns should be prefixed with `Metadata_`
+- The loader creates aliases automatically, but source columns must exist
+
 ---
 
+## Related Repositories
 
+- [spc-distributed](https://github.com/FrancisCrickInstitute/spc-distributed)
+- [spc-cosine-analysis](https://github.com/FrancisCrickInstitute/spc-cosine-analysis) — SPC-based phenotypic analysis pipeline (generates input for this app)
+- [cellprofiler_processing](https://github.com/FrancisCrickInstitute/cellprofiler_processing) — CellProfiler-based analysis pipeline (generates input for this app)
