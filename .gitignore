@@ -1,0 +1,23 @@
+# Python bytecode
+__pycache__/
+*.pyc
+
+# SLURM output files
+slurm_out/
+slurm-*.out
+
+# OS files
+.DS_Store
+
+# Config files (keep only the example)
+scripts/config/config_*.py
+!scripts/config/config_20251118_TEST_INPUTS.py
+
+# Data files (in case any accidentally end up here)
+*.parquet
+*.csv
+
+# Misc files
+scripts/requirements.txt
+scripts/requirements_no_ver.txt
+scripts/structure.txt

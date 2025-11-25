@@ -1,0 +1,38 @@
+name: spc_visualisation
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Core Python
+  - python=3.11
+  
+  # Data processing
+  - pandas
+  - numpy
+  - pyarrow
+  
+  # Visualization
+  - matplotlib-base
+  - plotly
+  
+  # Image processing
+  - pillow
+  
+  # Chemistry
+  - rdkit
+  
+  # Database (if needed)
+  - sqlalchemy
+  
+  # Utilities
+  - tqdm
+  
+  # Pip-installed packages
+  - pip
+  - pip:
+    - dash>=2.18.0
+    - dash-core-components>=2.0.0
+    - dash-html-components>=2.0.0
+    - dash-table>=5.0.0
+    - flask>=3.0.0
+    - werkzeug>=3.0.0
