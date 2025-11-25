@@ -76,26 +76,30 @@ The app loads data from two upstream analysis pipelines. Each pipeline produces 
 ```
 SPC_ANALYSIS_DIR/
 ├── data/
-│   └── spc_for_viz_app.csv          # Main visualisation data (primary)
+│   └── spc_for_viz_app.csv              # Main visualisation data (primary)
 └── analysis/
     └── landmark_distances/
-        ├── test_distances.parquet    # Landmark distances for test compounds
+        ├── test_distances.parquet        # Landmark distances for test compounds
         ├── reference_distances.parquet   # Landmark distances for reference compounds
-        └── landmark_metadata.parquet # Metadata for all landmarks
+        ├── landmark_metadata.parquet     # Metadata for all landmarks
+        ├── test_spc_landmark_options_cache.json      # Auto-generated cache
+        └── reference_spc_landmark_options_cache.json # Auto-generated cache
 
 CP_ANALYSIS_DIR/
 ├── data/
-│   └── cp_for_viz_app.csv           # Main visualisation data (primary)
+│   └── cp_for_viz_app.csv               # Main visualisation data (primary)
 └── landmark_analysis/
-    ├── test_distances.parquet        # Landmark distances for test compounds
-    ├── reference_distances.parquet   # Landmark distances for reference compounds
-    └── landmark_metadata.parquet     # Metadata for all landmarks
+    ├── test_distances.parquet            # Landmark distances for test compounds
+    ├── reference_distances.parquet       # Landmark distances for reference compounds
+    ├── landmark_metadata.parquet         # Metadata for all landmarks
+    ├── test_cp_landmark_options_cache.json       # Auto-generated cache
+    └── reference_cp_landmark_options_cache.json  # Auto-generated cache
 
 THUMBNAIL_DIR/
-├── fixed/                            # Fixed intensity scaling
+├── fixed/                                # Fixed intensity scaling
 │   └── {plate}/
 │       └── {plate}_{well}_{site}.png
-└── auto/                             # Auto-scaled per image
+└── auto/                                 # Auto-scaled per image
     └── {plate}/
         └── {plate}_{well}_{site}.png
 ```
@@ -140,6 +144,19 @@ These parquet files power the landmark analysis modal. They use a "slim format" 
 - `moa_first` / `Metadata_annotated_target_first`: mechanism of action
 - `PP_ID_uM` / `Metadata_PP_ID_uM`: compound identifier with concentration
 - Additional annotation columns
+
+### Landmark Options Cache Files (Auto-generated)
+
+The landmark loader creates JSON cache files to avoid rebuilding dropdown options on each app startup (which takes 30-60 seconds). These are generated automatically and stored alongside the parquet files:
+
+| File | Location | Description |
+|------|----------|-------------|
+| `test_spc_landmark_options_cache.json` | `{SPC_ANALYSIS_DIR}/analysis/landmark_distances/` | Cached dropdown options for SPC test landmarks |
+| `reference_spc_landmark_options_cache.json` | `{SPC_ANALYSIS_DIR}/analysis/landmark_distances/` | Cached dropdown options for SPC reference landmarks |
+| `test_cp_landmark_options_cache.json` | `{CP_ANALYSIS_DIR}/landmark_analysis/` | Cached dropdown options for CP test landmarks |
+| `reference_cp_landmark_options_cache.json` | `{CP_ANALYSIS_DIR}/landmark_analysis/` | Cached dropdown options for CP reference landmarks |
+
+The cache is automatically invalidated and rebuilt if the source parquet file is newer than the cache file. To force a rebuild, simply delete the relevant `.json` cache file.
 
 ### Thumbnail Images
 
@@ -267,7 +284,7 @@ spc-data-explorer/
 
 ### Key Configuration Note
 
->  **Use `config_20251118_TEST_INPUTS.py` as your starting point.** 
+> ✅ **Use `config_20251118_TEST_INPUTS.py` as your starting point.** 
 
 This is the latest configuration file that includes:
 - Separate loading logic for SPC and CellProfiler datasets
@@ -528,11 +545,13 @@ The app will start at `http://127.0.0.1:8090` (or the port specified in your con
 - Ensure all three parquet files exist: `test_distances.parquet`, `reference_distances.parquet`, `landmark_metadata.parquet`
 - Check they are in the correct subdirectory (`analysis/landmark_distances/` for SPC, `landmark_analysis/` for CP)
 - Verify the slim format structure with distance columns ending in `_distance`
+- If dropdown options seem stale/incorrect, delete the `*_landmark_options_cache.json` files to force a rebuild
 
 **Slow performance with large datasets**
 - Consider filtering data before loading
 - Reduce the number of hover columns in config
-- The landmark loader caches options to disk after first load
+- First app startup builds landmark caches (30-60 seconds) — subsequent loads are fast
+- The landmark loader caches options to disk (`.json` files) after first load
 
 **RDKit import errors**
 - Install RDKit via conda: `conda install -c conda-forge rdkit`
@@ -547,6 +566,6 @@ The app will start at `http://127.0.0.1:8090` (or the port specified in your con
 
 ## Related Repositories
 
-- [spc-distributed](https://github.com/FrancisCrickInstitute/spc-distributed)
+- [spc-distributed](https://github.com/FrancisCrickInstitute/spc-distributed) — Upstream SPC embedding generation using ResNet models
 - [spc-cosine-analysis](https://github.com/FrancisCrickInstitute/spc-cosine-analysis) — SPC-based phenotypic analysis pipeline (generates input for this app)
 - [cellprofiler_processing](https://github.com/FrancisCrickInstitute/cellprofiler_processing) — CellProfiler-based analysis pipeline (generates input for this app)
