@@ -244,7 +244,7 @@ spc-data-explorer/
     │   └── search.py                # Search component builders
     │
     ├── config/
-    │   └── config_20251118_TEST_INPUTS.py  # ✅ RECOMMENDED: Latest config
+    │   └── config_20251118_TEST_INPUTS.py  #  RECOMMENDED: Latest config
     │
     ├── data/
     │   ├── __init__.py
@@ -284,7 +284,7 @@ spc-data-explorer/
 
 ### Key Configuration Note
 
-> ✅ **Use `config_20251118_TEST_INPUTS.py` as your starting point.** 
+>  **Use `config_20251118_TEST_INPUTS.py` as your starting point.** 
 
 This is the latest configuration file that includes:
 - Separate loading logic for SPC and CellProfiler datasets
