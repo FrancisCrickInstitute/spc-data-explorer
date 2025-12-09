@@ -96,10 +96,12 @@ def register_landmark_callbacks(app, df_spc, df_cp):
          Input('landmark-dataset-selector', 'value'),
          Input('landmark-data-type-selector', 'value'),
          Input('landmark-color-selector', 'value'),
-         Input('landmark-size-slider', 'value')],
+         Input('landmark-size-slider', 'value'),
+         Input('landmark-plot-search-dropdown', 'value')],
         prevent_initial_call=True
     )
-    def update_landmark_plot(landmark_value, dataset_type, data_type, color_column, point_size):
+    def update_landmark_plot(landmark_value, dataset_type, data_type, color_column, point_size,
+                             highlight_compound=None):
         """
         Load selected landmark's data and create plot + info box.
         
@@ -173,7 +175,8 @@ def register_landmark_callbacks(app, df_spc, df_cp):
                 color_column, 
                 point_size,
                 dmso_distance_col=dmso_col,
-                data_type=data_type  # Pass data_type for column name handling
+                data_type=data_type,
+                highlight_compound=highlight_compound
             )
             
             # Create info box
@@ -202,6 +205,55 @@ def register_landmark_callbacks(app, df_spc, df_cp):
                 html.Div()
             )
 
+    # ===== NEW CALLBACKS FOR LANDMARK PLOT SEARCH =====
+    @app.callback(
+        Output('landmark-plot-search-dropdown', 'options'),
+        Input('landmark-plot-search-dropdown', 'search_value'),
+        [State('landmark-plot-search-dropdown', 'value'),
+         State('landmark-data-type-selector', 'value')],
+        prevent_initial_call=True
+    )
+    def update_landmark_plot_search_options(search_value, current_value, data_type):
+        """Update dropdown options for landmark plot compound search."""
+        if current_value and not search_value:
+            return [{'label': current_value, 'value': current_value}]
+        
+        if not search_value or len(search_value) < 2:
+            return []
+        
+        # Use appropriate dataframe
+        dataframe = df_cp if data_type == 'cp' else df_spc
+        if dataframe is None:
+            return []
+        
+        search_lower = search_value.lower()
+        options = []
+        seen_values = set()
+        
+        # Search in moa_compound_uM, PP_ID_uM, and treatment columns
+        for col in ['moa_compound_uM', 'PP_ID_uM', 'treatment']:
+            if col in dataframe.columns:
+                matches = dataframe[
+                    dataframe[col].astype(str).str.lower().str.contains(search_lower, na=False)
+                ][col].unique()
+                
+                for val in matches[:30]:
+                    if val not in seen_values and pd.notna(val):
+                        options.append({'label': str(val), 'value': str(val)})
+                        seen_values.add(val)
+        
+        return sorted(options, key=lambda x: x['label'])[:50]
+    
+    
+    @app.callback(
+        Output('landmark-plot-search-dropdown', 'value'),
+        Input('clear-landmark-plot-highlight-btn', 'n_clicks'),
+        prevent_initial_call=True
+    )
+    def clear_landmark_plot_highlight(n_clicks):
+        """Clear the landmark plot highlight search."""
+        return None
+    
 
 def create_landmark_info_box(landmark_info: dict, df_plot: pd.DataFrame, 
                              landmark_label: str, data_type: str) -> html.Div:
@@ -322,7 +374,8 @@ def create_landmark_plot(df: pd.DataFrame, landmark_label: str,
                         distance_col: str, color_col: str, 
                         point_size: int = 5,
                         dmso_distance_col: str = 'query_dmso_distance',
-                        data_type: str = 'cp') -> go.Figure:
+                        data_type: str = 'cp',
+                        highlight_compound: str = None) -> go.Figure:
     """
     Create landmark distance scatter plot.
     
@@ -521,4 +574,47 @@ def create_landmark_plot(df: pd.DataFrame, landmark_label: str,
     )
     
     logger.info(f" Created plot for {landmark_label} with {len(df)} points")
-    return fig
+
+    # ===== ADD HIGHLIGHT RING IF COMPOUND IS SELECTED =====
+    if highlight_compound:
+        mask = (
+            (df['treatment'].astype(str) == highlight_compound) |
+            (df.get('PP_ID_uM', pd.Series()).astype(str) == highlight_compound)
+        )
+        matched_rows = df[mask]
+        
+        if not matched_rows.empty:
+            x_coords = matched_rows[dmso_distance_col].values if dmso_distance_col in df.columns else []
+            y_coords = matched_rows[distance_col].values
+            
+            # Calculate radius based on data range
+            x_range = x_data.max() - x_data.min()
+            y_range = y_data.max() - y_data.min()
+            scale_factor = point_size / 2000
+            radius_x = x_range * scale_factor
+            radius_y = y_range * scale_factor
+            
+            for x_coord, y_coord in zip(x_coords, y_coords):
+                fig.add_shape(
+                    type="circle",
+                    x0=x_coord - radius_x,
+                    x1=x_coord + radius_x,
+                    y0=y_coord - radius_y,
+                    y1=y_coord + radius_y,
+                    line=dict(color="black", width=2),
+                    fillcolor="rgba(0,0,0,0)",
+                    layer="above"
+                )
+            
+            fig.add_trace(go.Scatter(
+                x=[None], y=[None],
+                mode='markers',
+                marker=dict(size=10, color='black', symbol='circle-open', line=dict(width=2)),
+                name=f'⚫ {highlight_compound}',
+                showlegend=True
+            ))
+            
+            logger.info(f"Highlighted {len(matched_rows)} points for compound: {highlight_compound}")
+    # ===== END HIGHLIGHT RING =====
+    
+    return fig  # existing line

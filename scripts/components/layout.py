@@ -435,7 +435,46 @@ def _create_landmark_analysis_section(available_color_columns: List[Tuple]) -> h
             'border': '1px solid #ddd',
             'marginBottom': '20px'
         }),
+
+        # ===== NEW: Search box to highlight compound on landmark plot =====
+        html.Div([
+            html.Label("Find compound on landmark plot:", 
+                      style={'fontWeight': 'bold', 'marginRight': '10px', 'fontSize': '14px'}),
+            dcc.Dropdown(
+                id='landmark-plot-search-dropdown',
+                options=[],
+                placeholder="Type treatment name or PP ID to highlight on landmark plot...",
+                multi=False,
+                clearable=True,
+                style={'width': '500px', 'display': 'inline-block', 'verticalAlign': 'middle'},
+                persistence=False
+            ),
+            html.Button(
+                '✕ Clear',
+                id='clear-landmark-plot-highlight-btn',
+                n_clicks=0,
+                style={
+                    'marginLeft': '10px',
+                    'padding': '6px 12px',
+                    'backgroundColor': '#dc3545',
+                    'color': 'white',
+                    'border': 'none',
+                    'borderRadius': '4px',
+                    'cursor': 'pointer',
+                    'fontSize': '12px',
+                    'verticalAlign': 'middle'
+                }
+            )
+        ], style={
+            'marginBottom': '15px',
+            'padding': '10px',
+            'backgroundColor': '#e8f5e9',
+            'borderRadius': '5px',
+            'border': '1px solid #a5d6a7'
+        }),
+        # ===== END NEW SEARCH BOX =====
         
+
         # Plot and info box container
         html.Div([
             # Plot container (left, wider)
