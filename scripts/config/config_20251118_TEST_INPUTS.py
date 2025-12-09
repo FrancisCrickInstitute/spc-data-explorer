@@ -46,7 +46,7 @@ class Config:
         SPC_ANALYSIS_DIR = Path("/nemo/stp/hts/working/Joe_Tuersley/code/spc-cosine-analysis/analysis/20251122_HaCaT_gsk_all_no_CRISPR_no_HTC_V1_no_CCA_V1_ResNet18/spc_analysis_20251124_174723")
         
         # CellProfiler Analysis Directory
-        CP_ANALYSIS_DIR = Path("/nemo/project/proj-prosperity/hts/raw/projects/20251111_gsk_prosperity_all_datasets/cellprofiler/processed_data/20251120_124820_from_well_results")
+        CP_ANALYSIS_DIR = Path("/nemo/project/proj-prosperity/hts/raw/projects/20251111_gsk_prosperity_all_datasets/cellprofiler/processed_data/20251125_152508_results")
         
         THUMBNAIL_DIRS = [
             # CRISPR genome
@@ -65,7 +65,7 @@ class Config:
         SPC_ANALYSIS_DIR = Path("/Volumes/hts/working/Joe_Tuersley/code/spc-cosine-analysis/analysis/20251122_HaCaT_gsk_all_no_CRISPR_no_HTC_V1_no_CCA_V1_ResNet18/spc_analysis_20251124_174723")
         
         # CellProfiler Analysis Directory
-        CP_ANALYSIS_DIR = Path("/Volumes/proj-prosperity/hts/raw/projects/20251111_gsk_prosperity_all_datasets/cellprofiler/processed_data/20251120_124820_from_well_results")
+        CP_ANALYSIS_DIR = Path("/Volumes/proj-prosperity/hts/raw/projects/20251111_gsk_prosperity_all_datasets/cellprofiler/processed_data/20251125_152508_results")
         
         THUMBNAIL_DIRS = [
             # CRISPR genome
@@ -205,52 +205,51 @@ class Config:
     
     # --- SPC HOVER COLUMNS ---
     SPC_HOVER_COLUMNS = [
-        'plate', 'well', 'treatment', 'SMILES',
-        'compound_name', 'compound_uM', 'PP_ID', 'PP_ID_uM', 'library',
-        'moa_first', 'moa_truncated_10', 'moa_compound_uM',
-        'annotated_target_description_truncated_10', 'target_description_truncated_10',
-        'chemical_description', 'manual_annotation', 'compound_type',
-        'landmark_label', 'is_landmark', 'valid_for_phenotypic_makeup',
-        'cosine_distance_from_dmso', 'mad_cosine',
-        # 1st Landmark
-        'closest_landmark_moa_first', 'closest_landmark_PP_ID', 'closest_landmark_PP_ID_uM',
-        'closest_landmark_distance', 'closest_landmark_annotated_target_description_truncated_10',
-        'closest_landmark_manual_annotation', 'closest_landmark_SMILES',
-        # 2nd Landmark - ADDED target description
-        'second_closest_landmark_moa_first', 'second_closest_landmark_PP_ID_uM',
-        'second_closest_landmark_distance', 
-        'second_closest_landmark_annotated_target_description_truncated_10', 
-        'second_closest_landmark_manual_annotation',
-        # 3rd Landmark - ADDED target description
-        'third_closest_landmark_moa_first', 'third_closest_landmark_PP_ID_uM',
-        'third_closest_landmark_distance', 
-        'third_closest_landmark_annotated_target_description_truncated_10',  
-        'third_closest_landmark_manual_annotation',
-        'gene_description',
+    'plate', 'well', 'treatment', 'SMILES',
+    'compound_name', 'compound_uM', 'PP_ID', 'PP_ID_uM', 'library',
+    'moa_first', 'moa_truncated_10', 'moa_compound_uM',
+    'annotated_target_description_truncated_10', 'target_description_truncated_10',
+    'chemical_description', 'compound_type', 'manual_annotation',  # compound_type FIRST for SPC!
+    'is_landmark',  # REMOVED landmark_label and valid_for_phenotypic_makeup
+    'cosine_distance_from_dmso', 'mad_cosine',
+    # 1st Landmark
+    'closest_landmark_moa_first', 'closest_landmark_PP_ID', 'closest_landmark_PP_ID_uM',
+    'closest_landmark_distance', 'closest_landmark_annotated_target_description_truncated_10',
+    'closest_landmark_manual_annotation', 'closest_landmark_SMILES',
+    # 2nd Landmark
+    'second_closest_landmark_moa_first', 'second_closest_landmark_PP_ID_uM',
+    'second_closest_landmark_distance',
+    'second_closest_landmark_annotated_target_description_truncated_10',  
+    'second_closest_landmark_manual_annotation',
+    # 3rd Landmark
+    'third_closest_landmark_moa_first', 'third_closest_landmark_PP_ID_uM',
+    'third_closest_landmark_distance',
+    'third_closest_landmark_annotated_target_description_truncated_10',  
+    'third_closest_landmark_manual_annotation',
     ]
     
     CP_HOVER_COLUMNS = [
-        'plate', 'well', 'treatment', 'SMILES',
-        'compound_name', 'compound_uM', 'PP_ID', 'PP_ID_uM', 'library',
-        'moa_first', 'moa_truncated_10', 'moa_compound_uM',
-        'target_description_truncated_10',
-        'chemical_description', 'manual_annotation', 'compound_type',
-        'is_landmark', 'valid_for_phenotypic_makeup',
-        'cosine_distance_from_dmso', 'mad_cosine',
-        # 1st Landmark
-        'closest_landmark_moa_first', 'closest_landmark_PP_ID', 'closest_landmark_PP_ID_uM',
-        'closest_landmark_distance', 'closest_landmark_annotated_target_description_truncated_10',
-        'closest_landmark_manual_annotation', 'closest_landmark_SMILES',
-        # 2nd Landmark - ADDED target description
-        'second_closest_landmark_moa_first', 'second_closest_landmark_PP_ID_uM',
-        'second_closest_landmark_distance',
-        'second_closest_landmark_annotated_target_description_truncated_10',  
-        'second_closest_landmark_manual_annotation',
-        # 3rd Landmark - ADDED target description
-        'third_closest_landmark_moa_first', 'third_closest_landmark_PP_ID_uM',
-        'third_closest_landmark_distance',
-        'third_closest_landmark_annotated_target_description_truncated_10',  
-        'third_closest_landmark_manual_annotation',
+    'plate', 'well', 'treatment', 'SMILES',
+    'compound_name', 'compound_uM', 'PP_ID', 'PP_ID_uM', 'library',
+    'moa_first', 'moa_truncated_10', 'moa_compound_uM',
+    'annotated_target_description_truncated_10', 'target_description_truncated_10',
+    'chemical_description', 'manual_annotation', 'compound_type',  # manual_annotation FIRST for CP!
+    'is_landmark',
+    'cosine_distance_from_dmso', 'mad_cosine',
+    # 1st Landmark
+    'closest_landmark_moa_first', 'closest_landmark_PP_ID', 'closest_landmark_PP_ID_uM',
+    'closest_landmark_distance', 'closest_landmark_annotated_target_description_truncated_10',
+    'closest_landmark_manual_annotation', 'closest_landmark_SMILES',
+    # 2nd Landmark
+    'second_closest_landmark_moa_first', 'second_closest_landmark_PP_ID_uM',
+    'second_closest_landmark_distance',
+    'second_closest_landmark_annotated_target_description_truncated_10',  
+    'second_closest_landmark_manual_annotation',
+    # 3rd Landmark
+    'third_closest_landmark_moa_first', 'third_closest_landmark_PP_ID_uM',
+    'third_closest_landmark_distance',
+    'third_closest_landmark_annotated_target_description_truncated_10',  
+    'third_closest_landmark_manual_annotation',
     ]
 
     
