@@ -23,6 +23,23 @@ import logging
 # Set up logging
 logger = logging.getLogger(__name__)
 
+# 100 maximally distinct colors generated via `pastel distinct 100`
+PASTEL_DISTINCT_100 = [
+    '#88fd70', '#0000ff', '#fe003b', '#08b1f4', '#240001', '#ff03c8', '#fcab0a', '#006b3b',
+    '#f1beb9', '#4c0072', '#06fffb', '#765404', '#fbff01', '#0178ff', '#ea9eed', '#bf1b67',
+    '#004962', '#edffa7', '#738b13', '#28ff07', '#c346f5', '#7f2000', '#936659', '#9fc3b6',
+    '#ff9654', '#0554ff', '#ff656f', '#8c7bb8', '#ff68ca', '#00bb51', '#c8ae46', '#007200',
+    '#0536b2', '#944fb6', '#a0ffaa', '#9eff03', '#34002e', '#5fcda8', '#52000c', '#ff7da8',
+    '#1399ff', '#b34d5c', '#00180a', '#435400', '#a595ff', '#697277', '#6c00ab', '#008d7f',
+    '#a200ff', '#f8f7ff', '#004e42', '#e881ff', '#adb900', '#000047', '#fff36d', '#08c90e',
+    '#673a77', '#ff0095', '#a98e57', '#003369', '#ffd2ff', '#a8a9c4', '#b67900', '#6f8e66',
+    '#4555b1', '#ffd502', '#b30033', '#ff00ff', '#b95b9b', '#890070', '#b4633b', '#ffefc5',
+    '#ff2600', '#1bffca', '#1187a4', '#5c3545', '#001027', '#b20000', '#492700', '#0700c4',
+    '#ff0f6b', '#525234', '#ff8000', '#fc9987', '#56a700', '#c1849d', '#ffc485', '#0cc1d2',
+    '#d1fe56', '#a0e1ff', '#a5d35f', '#136eaf', '#74033f', '#00ff99', '#c8ffd4', '#003100',
+    '#5aa85e', '#b10bac', '#946dff', '#ff633c',
+]
+
 
 def generate_colors(n: int) -> List[str]:
     """
@@ -73,7 +90,7 @@ def get_color_column_config() -> List[Tuple[str, bool, str, Any]]:
         ('moa_first', False, 'MOA (First)', px.colors.qualitative.Dark24),
         ('moa_compound_uM', False, 'MOA with Concentration', px.colors.qualitative.Dark24),             
         ('treatment', False, 'Treatment', px.colors.qualitative.Light24),
-        ('manual_annotation', False, 'Broad Annotation', px.colors.qualitative.Dark24),
+        ('manual_annotation', False, 'Broad Annotation', PASTEL_DISTINCT_100),
         
         # Landmark label variants
         ('landmark_label_mad', False, 'Landmark Status (MAD)', px.colors.qualitative.Set1),
@@ -259,7 +276,7 @@ def _choose_discrete_palette(color_column: str) -> List[str]:
         return px.colors.qualitative.Safe
     # ADD THIS LINE for manual_annotation
     elif color_column.lower() == 'manual_annotation':
-        return px.colors.qualitative.Dark24  # Good for many categories
+        return PASTEL_DISTINCT_100
     else:
         return px.colors.qualitative.Light24
 

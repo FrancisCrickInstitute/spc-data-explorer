@@ -480,7 +480,7 @@ def _create_scatter_plot(plot_df: pd.DataFrame, x: str, y: str, color_col: str,
             x=x,
             y=y,
             color=color_to_use,
-            color_discrete_sequence=color_params.get('color_sequence'),
+            color_discrete_sequence=color_params.get('color_discrete_sequence'),
             custom_data=custom_data_cols,
             hover_name='treatment' if 'treatment' in plot_df.columns else None,
             category_orders=color_params.get('category_orders', {})
@@ -496,7 +496,7 @@ def _create_scatter_plot(plot_df: pd.DataFrame, x: str, y: str, color_col: str,
     
     # Update marker styling
     fig.update_traces(
-        marker=dict(size=point_size, line=dict(width=0.5, color='rgba(0,0,0,0.1)')),
+        marker=dict(size=point_size, line=dict(width=0)),
         hoverlabel=dict(
             bgcolor="white",
             font_size=12,
@@ -522,7 +522,7 @@ def _create_scatter_plot(plot_df: pd.DataFrame, x: str, y: str, color_col: str,
         yaxis_title=y_title,
         legend_title=display_name,
         hovermode='closest',
-        plot_bgcolor='rgba(245,245,245,0.8)',
+        plot_bgcolor='white',
         paper_bgcolor='white',
         font=dict(family="Arial, sans-serif", size=12),
         title=dict(x=0.5, font=dict(size=16, color='#2c3e50')),
@@ -534,8 +534,10 @@ def _create_scatter_plot(plot_df: pd.DataFrame, x: str, y: str, color_col: str,
         yaxis=dict(
             range=[y_min - y_padding, y_max + y_padding],
             autorange=False,
-            fixedrange=False
-        )
+            fixedrange=False,
+            scaleanchor='x',
+            scaleratio=1,
+        ),
     )
     
     # Configure legend

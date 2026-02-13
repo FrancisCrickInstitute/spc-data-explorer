@@ -298,7 +298,13 @@ def _create_main_plot_area() -> html.Div:
                 'modeBarButtonsToRemove': [
                     'lasso2d', 'select2d', 'autoScale2d', 'hoverClosestCartesian'
                 ],
-                'dragmode': 'pan'
+                'dragmode': 'pan',
+                'toImageButtonOptions': {
+                    'format': 'svg',
+                    'width': 3000,
+                    'height': 2400,
+                    'scale': 4,
+                },
             }
         )
     ], style={
