@@ -402,30 +402,30 @@ def _add_display_columns(df: pd.DataFrame, data_type: str) -> pd.DataFrame:
             aliases[f'{prefix}_landmark_annotated_target_description'] = f'{prefix}_landmark_Metadata_annotated_target_description'  # ← NEW
             aliases[f'{prefix}_landmark_moa_truncated_10'] = f'{prefix}_landmark_Metadata_annotated_target_truncated_10'             # ← NEW
             
-            for alias, metadata_col in aliases.items():
-                if alias not in df.columns and metadata_col in df.columns:
-                    df[alias] = df[metadata_col]
-                    logger.info(f"    Created '{alias}' alias from {metadata_col}")
+        for alias, metadata_col in aliases.items():
+            if alias not in df.columns and metadata_col in df.columns:
+                df[alias] = df[metadata_col]
+                logger.info(f"    Created '{alias}' alias from {metadata_col}")
 
-                    # ===== SPECIAL HANDLING: Columns that need to be CREATED, not aliased =====
-            
-            # Create landmark_label from is_landmark (CP has boolean, SPC has string)
-            if 'landmark_label' not in df.columns and 'is_landmark' in df.columns:
-                df['landmark_label'] = df['is_landmark'].apply(
-                    lambda x: 'Reference Landmark' if x == True else 'Other'
-                )
-                logger.info("    Created 'landmark_label' from 'is_landmark'")
-            
-            # Create landmark_label_mad (CP doesn't have MAD-based landmark labels)
-            if 'landmark_label_mad' not in df.columns and 'is_landmark' in df.columns:
-                df['landmark_label_mad'] = df['is_landmark'].apply(
-                    lambda x: 'Reference Landmark' if x == True else 'Other'
-                )
-                logger.info("    Created 'landmark_label_mad' from 'is_landmark'")
-            
-            # Verify cell_count exists
-            if 'cell_count' in df.columns:
-                logger.info("    'cell_count' column already exists")
+                # ===== SPECIAL HANDLING: Columns that need to be CREATED, not aliased =====
+        
+        # Create landmark_label from is_landmark (CP has boolean, SPC has string)
+        if 'landmark_label' not in df.columns and 'is_landmark' in df.columns:
+            df['landmark_label'] = df['is_landmark'].apply(
+                lambda x: 'Reference Landmark' if x == True else 'Other'
+            )
+            logger.info("    Created 'landmark_label' from 'is_landmark'")
+        
+        # Create landmark_label_mad (CP doesn't have MAD-based landmark labels)
+        if 'landmark_label_mad' not in df.columns and 'is_landmark' in df.columns:
+            df['landmark_label_mad'] = df['is_landmark'].apply(
+                lambda x: 'Reference Landmark' if x == True else 'Other'
+            )
+            logger.info("    Created 'landmark_label_mad' from 'is_landmark'")
+        
+        # Verify cell_count exists
+        if 'cell_count' in df.columns:
+            logger.info("    'cell_count' column already exists")
         
 
     # ==========================================

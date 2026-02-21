@@ -327,6 +327,9 @@ def _create_additional_components() -> html.Div:
         # Store for tracking last clicked point
         dcc.Store(id='last-clicked-point', data=None),
         
+        # Hidden placeholder for landmark plot graph (required for hover image callback)
+        dcc.Graph(id='landmark-plot-graph', style={'display': 'none'}),
+        
         # Image display area for clicked points
         html.Div([
             html.Div(
