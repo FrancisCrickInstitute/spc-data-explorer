@@ -378,6 +378,9 @@ def _add_display_columns(df: pd.DataFrame, data_type: str) -> pd.DataFrame:
         
         # Cell type
         'cell_type': 'Metadata_cell_type',                                                  # ← NEW
+        # Washout and SAR info
+        'washout_status': 'Metadata_washout_status',                                        # ← NEW
+        'compound_SAR_ID': 'Metadata_compound_SAR_ID',                                      # ← NEW     
         
         # Metrics (CP → SPC naming)
         'mad_cosine': 'query_mad',

@@ -105,6 +105,8 @@ def get_color_column_config() -> List[Tuple[str, bool, str, Any]]:
         ('compound_name', False, 'Compound Name', px.colors.qualitative.Vivid),
         ('compound_uM', False, 'Compound Concentration (µM)', px.colors.qualitative.Vivid),
         ('compound_type', False, 'Compound Type', px.colors.qualitative.Safe),  # ADDED compound_type
+        ('washout_status', False, 'Washout Status', px.colors.qualitative.Set2),  # ADDED washout_status
+        ('compound_SAR_ID', False, 'SAR Compound ID', px.colors.qualitative.Dark24),  # ADDED compound_SAR_ID
         
         # Continuous metrics
         ('cosine_distance_from_dmso', True, 'Cosine Distance from DMSO', 'Plasma'),
@@ -274,6 +276,10 @@ def _choose_discrete_palette(color_column: str) -> List[str]:
         return px.colors.qualitative.Bold
     elif color_column.lower() == 'compound_type':
         return px.colors.qualitative.Safe
+    elif color_column.lower() == 'washout_status':
+        return px.colors.qualitative.Set2
+    elif color_column.lower() == 'compound_sar_id':
+        return px.colors.qualitative.Dark24
     # ADD THIS LINE for manual_annotation
     elif color_column.lower() == 'manual_annotation':
         return PASTEL_DISTINCT_100
