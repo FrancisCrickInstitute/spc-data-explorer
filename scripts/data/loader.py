@@ -135,10 +135,29 @@ def _load_single_dataset(Config, data_type: str) -> Optional[pd.DataFrame]:
         
         logger.info(f"Loading {data_type.upper()} data from: {file_path}")
         
-        # Load CSV
         df = pd.read_csv(file_path, low_memory=False)
-        
+
         logger.info(f"Loaded {len(df):,} rows, {len(df.columns)} columns")
+
+        # ── Library filter (values defined in config, safe default = no filter) ──
+        excluded_libraries = getattr(Config, 'EXCLUDED_LIBRARIES', [])
+        if excluded_libraries and 'Metadata_library' in df.columns:
+            rows_before = len(df)
+            df = df[~df['Metadata_library'].isin(excluded_libraries)]
+            rows_removed = rows_before - len(df)
+            logger.info(
+                f" FILTER APPLIED ({data_type.upper()}): excluded {rows_removed:,} rows "
+                f"from libraries {excluded_libraries}. "
+                f"{len(df):,} rows remaining."
+            )
+        elif excluded_libraries and 'Metadata_library' not in df.columns:
+            logger.warning(
+                f"  EXCLUDED_LIBRARIES is set but 'Metadata_library' column not found "
+                f"in {data_type.upper()} data — filter not applied."
+            )
+
+        # Add display columns
+        df = _add_display_columns(df, data_type)
         
         # Add display columns
         df = _add_display_columns(df, data_type)

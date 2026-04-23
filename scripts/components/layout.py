@@ -89,7 +89,7 @@ def create_layout(df: pd.DataFrame,
         _create_additional_components(),
 
         # Landmark analysis section (standalone, below main plot)
-        _create_landmark_analysis_section(available_color_columns)
+        _create_landmark_analysis_section(available_color_columns) if getattr(get_config(), 'ENABLE_LANDMARK_ANALYSIS', True) else html.Div()
     ])
 
 
@@ -328,7 +328,7 @@ def _create_additional_components() -> html.Div:
         dcc.Store(id='last-clicked-point', data=None),
         
         # Hidden placeholder for landmark plot graph (required for hover image callback)
-        dcc.Graph(id='landmark-plot-graph', style={'display': 'none'}),
+        dcc.Graph(id='landmark-plot-graph', style={'display': 'none'}) if getattr(get_config(), 'ENABLE_LANDMARK_ANALYSIS', True) else html.Div(id='landmark-plot-graph'),
         
         # Image display area for clicked points
         html.Div([

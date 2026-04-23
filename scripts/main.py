@@ -432,8 +432,11 @@ def create_app(df_spc, df_cp, Config) -> Dash:
             df_cp=df_cp     # Pass CP dataframe
         ) 
         
-        # Register landmark analysis callbacks - UPDATED to pass both dataframes
-        register_landmark_callbacks(app, df_spc, df_cp)  # Pass both for merger with viz data
+        # Register landmark analysis callbacks - controlled by config flag
+        if getattr(Config, 'ENABLE_LANDMARK_ANALYSIS', True):
+            register_landmark_callbacks(app, df_spc, df_cp)
+        else:
+            logger.info("  Landmark analysis disabled via config (ENABLE_LANDMARK_ANALYSIS=False)")
         
         logger.info("All callbacks registered successfully")
         
