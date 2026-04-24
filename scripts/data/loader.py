@@ -141,26 +141,26 @@ def _load_single_dataset(Config, data_type: str) -> Optional[pd.DataFrame]:
 
         # ── Library filter (values defined in config, safe default = no filter) ──
         excluded_libraries = getattr(Config, 'EXCLUDED_LIBRARIES', [])
-        if excluded_libraries and 'Metadata_library' in df.columns:
+        library_col = next((c for c in ['Metadata_library', 'library'] if c in df.columns), None)
+        if excluded_libraries and library_col:
             rows_before = len(df)
-            df = df[~df['Metadata_library'].isin(excluded_libraries)]
+            df = df[~df[library_col].isin(excluded_libraries)]
             rows_removed = rows_before - len(df)
             logger.info(
-                f" FILTER APPLIED ({data_type.upper()}): excluded {rows_removed:,} rows "
+                f"✅ FILTER APPLIED ({data_type.upper()}): excluded {rows_removed:,} rows "
                 f"from libraries {excluded_libraries}. "
                 f"{len(df):,} rows remaining."
             )
-        elif excluded_libraries and 'Metadata_library' not in df.columns:
+        elif excluded_libraries and not library_col:
             logger.warning(
-                f"  EXCLUDED_LIBRARIES is set but 'Metadata_library' column not found "
+                f"⚠️  EXCLUDED_LIBRARIES is set but no library column found "
                 f"in {data_type.upper()} data — filter not applied."
             )
+        # ─────────────────────────────────────────────────────────────────────────
 
         # Add display columns
         df = _add_display_columns(df, data_type)
         
-        # Add display columns
-        df = _add_display_columns(df, data_type)
         
         # Validate required columns
         if not _validate_required_columns(df, data_type):
